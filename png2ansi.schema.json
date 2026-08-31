@@ -1,71 +1,55 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/techrote/pyANSI/blob/main/png2ansi.schema.json",
-  "title": "PNG2ANSI profile",
+  "title": "PNG2ANSI profile v2",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "style", "vocabulary", "canvas", "image", "fit", "industrial"],
+  "required": ["schema_version", "style", "vocabulary", "canvas", "image", "fit", "derez", "nl_filter", "industrial"],
   "properties": {
-    "schema_version": {"const": 1},
+    "schema_version": {"const": 2},
     "style": {"enum": ["photographic", "industrial"]},
     "vocabulary": {"enum": ["full-cp437", "ascii", "box-block", "industrial-sparse", "industrial-dense"]},
     "canvas": {
       "type": "object", "additionalProperties": false,
       "required": ["columns", "rows", "cell_width", "cell_height", "sample_width", "sample_height", "font_size", "resampler"],
       "properties": {
-        "columns": {"type": "integer", "minimum": 16, "maximum": 512},
-        "rows": {"type": "integer", "minimum": 8, "maximum": 512},
-        "cell_width": {"type": "integer", "minimum": 4, "maximum": 32},
-        "cell_height": {"type": "integer", "minimum": 8, "maximum": 64},
-        "sample_width": {"type": "integer", "minimum": 1, "maximum": 16},
-        "sample_height": {"type": "integer", "minimum": 1, "maximum": 32},
-        "font_size": {"type": "integer", "minimum": 4, "maximum": 64},
-        "resampler": {"enum": ["nearest", "bilinear", "bicubic", "lanczos"]}
+        "columns": {"type": "integer", "minimum": 16, "maximum": 512}, "rows": {"type": "integer", "minimum": 8, "maximum": 512},
+        "cell_width": {"type": "integer", "minimum": 4, "maximum": 32}, "cell_height": {"type": "integer", "minimum": 8, "maximum": 64},
+        "sample_width": {"type": "integer", "minimum": 1, "maximum": 16}, "sample_height": {"type": "integer", "minimum": 1, "maximum": 32},
+        "font_size": {"type": "integer", "minimum": 4, "maximum": 64}, "resampler": {"enum": ["nearest", "bilinear", "bicubic", "lanczos"]}
       }
     },
-    "image": {"$ref": "#/$defs/image"},
-    "fit": {"$ref": "#/$defs/fit"},
+    "image": {"$ref": "#/$defs/image"}, "fit": {"$ref": "#/$defs/fit"},
+    "derez": {"$ref": "#/$defs/derez"}, "nl_filter": {"$ref": "#/$defs/nl_filter"},
     "industrial": {"$ref": "#/$defs/industrial"}
   },
   "$defs": {
     "number04": {"type": "number", "minimum": 0, "maximum": 4},
-    "image": {
-      "type": "object", "additionalProperties": false,
-      "required": ["brightness", "contrast", "saturation", "gamma", "sharpness"],
-      "properties": {
-        "brightness": {"$ref": "#/$defs/number04"}, "contrast": {"$ref": "#/$defs/number04"},
-        "saturation": {"$ref": "#/$defs/number04"}, "sharpness": {"$ref": "#/$defs/number04"},
-        "gamma": {"type": "number", "minimum": 0.1, "maximum": 4}
-      }
-    },
-    "fit": {
-      "type": "object", "additionalProperties": false,
-      "required": ["foreground_candidates", "background_candidates"],
-      "properties": {
-        "foreground_candidates": {"type": "integer", "minimum": 1, "maximum": 16},
-        "background_candidates": {"type": "integer", "minimum": 1, "maximum": 8}
-      }
-    },
-    "industrial": {
-      "type": "object", "additionalProperties": false,
+    "image": {"type": "object", "additionalProperties": false, "required": ["brightness", "contrast", "saturation", "gamma", "sharpness"], "properties": {
+      "brightness": {"$ref": "#/$defs/number04"}, "contrast": {"$ref": "#/$defs/number04"}, "saturation": {"$ref": "#/$defs/number04"},
+      "sharpness": {"$ref": "#/$defs/number04"}, "gamma": {"type": "number", "minimum": 0.1, "maximum": 4}
+    }},
+    "fit": {"type": "object", "additionalProperties": false, "required": ["foreground_candidates", "background_candidates"], "properties": {
+      "foreground_candidates": {"type": "integer", "minimum": 1, "maximum": 12}, "background_candidates": {"type": "integer", "minimum": 1, "maximum": 8}
+    }},
+    "derez": {"type": "object", "additionalProperties": false, "required": ["enabled", "width", "height"], "properties": {
+      "enabled": {"type": "boolean"}, "width": {"type": "integer", "minimum": 16, "maximum": 2048}, "height": {"type": "integer", "minimum": 16, "maximum": 2048}
+    }},
+    "nl_filter": {"type": "object", "additionalProperties": false, "required": ["enabled", "mode", "radius", "alpha"], "properties": {
+      "enabled": {"type": "boolean"}, "mode": {"enum": ["alpha-trimmed-mean", "optimal-estimation", "edge-enhancement"]},
+      "radius": {"type": "number", "minimum": 0.33, "maximum": 1}, "alpha": {"type": "number", "minimum": 0, "maximum": 1}
+    }},
+    "industrial": {"type": "object", "additionalProperties": false,
       "required": ["structure_blur", "texture_blur", "edge_threshold", "edge_range", "texture_threshold", "texture_range", "highlight_threshold", "highlight_range", "highlight_exponent", "accent_luminance_scale", "edge_weight", "texture_weight", "highlight_weight", "accent_weight", "sparsity_threshold", "sparsity_range", "ink_exponent", "saturation_threshold", "saturation_range"],
       "properties": {
-        "structure_blur": {"type": "number", "minimum": 0, "maximum": 8},
-        "texture_blur": {"type": "number", "minimum": 0, "maximum": 12},
-        "edge_threshold": {"type": "number", "minimum": 0, "maximum": 255},
-        "edge_range": {"type": "number", "exclusiveMinimum": 0, "maximum": 255},
-        "texture_threshold": {"type": "number", "minimum": 0, "maximum": 255},
-        "texture_range": {"type": "number", "exclusiveMinimum": 0, "maximum": 255},
-        "highlight_threshold": {"type": "number", "minimum": 0, "maximum": 255},
-        "highlight_range": {"type": "number", "exclusiveMinimum": 0, "maximum": 255},
-        "highlight_exponent": {"type": "number", "minimum": 0.1, "maximum": 8},
-        "accent_luminance_scale": {"type": "number", "minimum": 1, "maximum": 255},
-        "edge_weight": {"$ref": "#/$defs/number04"}, "texture_weight": {"$ref": "#/$defs/number04"},
-        "highlight_weight": {"$ref": "#/$defs/number04"}, "accent_weight": {"$ref": "#/$defs/number04"},
-        "sparsity_threshold": {"type": "number", "minimum": 0, "maximum": 0.99},
-        "sparsity_range": {"type": "number", "exclusiveMinimum": 0, "maximum": 1},
-        "ink_exponent": {"type": "number", "minimum": 0.1, "maximum": 8},
-        "saturation_threshold": {"type": "number", "minimum": 0, "maximum": 1},
+        "structure_blur": {"type": "number", "minimum": 0, "maximum": 8}, "texture_blur": {"type": "number", "minimum": 0, "maximum": 12},
+        "edge_threshold": {"type": "number", "minimum": 0, "maximum": 255}, "edge_range": {"type": "number", "exclusiveMinimum": 0, "maximum": 255},
+        "texture_threshold": {"type": "number", "minimum": 0, "maximum": 255}, "texture_range": {"type": "number", "exclusiveMinimum": 0, "maximum": 255},
+        "highlight_threshold": {"type": "number", "minimum": 0, "maximum": 255}, "highlight_range": {"type": "number", "exclusiveMinimum": 0, "maximum": 255},
+        "highlight_exponent": {"type": "number", "minimum": 0.1, "maximum": 8}, "accent_luminance_scale": {"type": "number", "minimum": 1, "maximum": 255},
+        "edge_weight": {"$ref": "#/$defs/number04"}, "texture_weight": {"$ref": "#/$defs/number04"}, "highlight_weight": {"$ref": "#/$defs/number04"}, "accent_weight": {"$ref": "#/$defs/number04"},
+        "sparsity_threshold": {"type": "number", "minimum": 0, "maximum": 0.99}, "sparsity_range": {"type": "number", "exclusiveMinimum": 0, "maximum": 1},
+        "ink_exponent": {"type": "number", "minimum": 0.1, "maximum": 8}, "saturation_threshold": {"type": "number", "minimum": 0, "maximum": 1},
         "saturation_range": {"type": "number", "exclusiveMinimum": 0, "maximum": 1}
       }
     }

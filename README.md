@@ -38,6 +38,10 @@ python PNG2ANSI.py image.png --style industrial --vocabulary industrial-sparse
 # Reusable JSON profile with a command-line override
 python PNG2ANSI.py image.png --config profile.json --contrast 1.2
 
+# Deliberately reduce detail before fitting, then enhance local edges
+python PNG2ANSI.py image.png --derez --derez-width 160 --derez-height 160 `
+  --nl-filter --nl-mode edge-enhancement --nl-radius 1 --nl-alpha 0.9
+
 # Derive one combined glyph vocabulary from several ANSI references
 python PNG2ANSI.py image.png --style industrial `
   --reference-ansi reference-a.ans --reference-ansi reference-b.ans
@@ -48,7 +52,9 @@ python PNG2ANSI.py --write-config profile.json
 
 Configuration precedence is built-in defaults, then `--config`, then explicit
 command-line options. Unknown JSON keys, invalid enums, and out-of-range values
-are errors rather than being silently ignored.
+are errors rather than being silently ignored. Version 1 profiles are migrated
+to schema version 2 in memory: explicit old values are preserved and Derez/NL
+controls receive their documented defaults.
 
 ## Workflow
 
@@ -62,8 +68,16 @@ are errors rather than being silently ignored.
 5. Inspect the PNG preview and display the `.ans` in an 80-column-compatible
    viewer.
 
-Every public setting is documented in [PARAMETERS.md](PARAMETERS.md). The JSON
-shape is defined by [png2ansi.schema.json](png2ansi.schema.json).
+For a practical first pass, read [QUICKSTART.md](QUICKSTART.md). Every public
+setting, processing stage, performance cost, and interaction is documented in
+[PARAMETERS.md](PARAMETERS.md). The JSON shape is defined by
+[png2ansi.schema.json](png2ansi.schema.json).
+
+Candidate fitting defaults to 6 foreground and 5 background colours. The
+validated limits are 12 and 8 respectively; the latter reflects the eight
+classic ANSI background colours. Each cell shortlists 32 glyph shapes before
+testing colour pairs, and a deterministic 125,000,000-unit workload guard
+rejects oversized profiles with advice about which setting to reduce.
 
 ## Troubleshooting
 
@@ -74,6 +88,11 @@ shape is defined by [png2ansi.schema.json](png2ansi.schema.json).
 - Literal metadata at the bottom: PNG2ANSI never writes SAUCE metadata.
 - Unexpected glyphs: choose a narrower built-in vocabulary or supply one or
   more reference ANSI files.
+- Configuration rejected before conversion: reduce canvas rows/columns,
+  sampling density, vocabulary size, or foreground/background candidates as
+  suggested by the workload error.
+- Derez has no apparent effect on a small source: it never enlarges beyond the
+  source dimensions. Use a target below the source size to simplify detail.
 
 ## Tests
 

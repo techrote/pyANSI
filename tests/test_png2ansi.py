@@ -10,6 +10,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+import numpy as np
 from PIL import Image, ImageDraw
 
 
@@ -95,7 +96,69 @@ class PNG2ANSITests(unittest.TestCase):
             )
             self.assertEqual(result.returncode, 0, result.stderr)
             digest = hashlib.sha256(output.read_bytes()).hexdigest()
-            self.assertEqual(digest, "4d10bd06aa0822e5b3ba13e15fdf47ff178eaead8f7c1eaedbc96ddea668a566")
+            self.assertEqual(digest, "2e39bb11a3065268f14a99ecb44467d89be26f0660f674a7088251e4c40cb0eb")
+
+    def test_v1_profile_migrates_and_cli_precedence_includes_new_filters(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            directory = Path(directory)
+            profile = directory / "v1.json"
+            profile.write_text(json.dumps({
+                "schema_version": 1,
+                "fit": {"foreground_candidates": 4, "background_candidates": 4},
+            }), encoding="utf-8")
+            effective = directory / "v2.json"
+            result = subprocess.run([
+                sys.executable, str(SCRIPT), "--config", str(profile),
+                "--derez", "--derez-width", "96", "--derez-height", "80",
+                "--nl-filter", "--nl-mode", "optimal-estimation",
+                "--nl-radius", "0.8", "--nl-alpha", "0.25",
+                "--foreground-candidates", "7", "--write-config", str(effective),
+            ], text=True, capture_output=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            data = json.loads(effective.read_text(encoding="utf-8"))
+            self.assertEqual(data["schema_version"], 2)
+            self.assertEqual(data["fit"], {"foreground_candidates": 7, "background_candidates": 4})
+            self.assertEqual(data["derez"], {"enabled": True, "width": 96, "height": 80})
+            self.assertEqual(data["nl_filter"]["mode"], "optimal-estimation")
+
+    def test_nl_filter_modes_and_derez_bounds(self) -> None:
+        flat = np.full((7, 7, 3), 91, dtype=np.uint8)
+        for mode in ("alpha-trimmed-mean", "optimal-estimation", "edge-enhancement"):
+            filtered = PNG2ANSI.nl_filter_array(flat, mode, 1.0, 0.9)
+            np.testing.assert_array_equal(filtered, flat)
+        impulse = flat.copy()
+        impulse[3, 3] = 240
+        edge = PNG2ANSI.nl_filter_array(impulse, "edge-enhancement", 1.0, 0.9)
+        self.assertGreater(int(edge[3, 3, 0]), int(impulse[3, 3, 0]))
+        smooth = PNG2ANSI.nl_filter_array(impulse, "alpha-trimmed-mean", 1.0, 1.0)
+        self.assertEqual(int(smooth[3, 3, 0]), 91)
+        for derez, nl_filter, expected in (
+            (False, False, (32, 24)),
+            (True, False, (32, 24)),
+            (False, True, (320, 320)),
+            (True, True, (32, 24)),
+        ):
+            config = json.loads(json.dumps(PNG2ANSI.DEFAULT_CONFIG))
+            config["derez"].update({"enabled": derez, "width": 160, "height": 160})
+            config["nl_filter"]["enabled"] = nl_filter
+            result = PNG2ANSI.preprocess_source(Image.new("RGB", (32, 24)), config)
+            self.assertEqual(result.size, expected)
+
+    def test_candidate_safety_and_workload_budget(self) -> None:
+        config = json.loads(json.dumps(PNG2ANSI.DEFAULT_CONFIG))
+        default_units = PNG2ANSI.workload_units(config, 218)
+        old_baseline = 80 * 40 * (218 * (4 * 8 * 3 + 12) + 218 * 3 * 3 * 3)
+        self.assertLessEqual(default_units, old_baseline)
+        config["fit"].update({"foreground_candidates": 12, "background_candidates": 8})
+        self.assertLessEqual(PNG2ANSI.workload_units(config, 218), old_baseline * 1.5)
+        PNG2ANSI.validate_workload(config, 218)
+        config["canvas"].update({"columns": 512, "rows": 512})
+        with self.assertRaisesRegex(ValueError, "safe limit"):
+            PNG2ANSI.validate_workload(config, 218)
+        invalid = json.loads(json.dumps(PNG2ANSI.DEFAULT_CONFIG))
+        invalid["fit"]["background_candidates"] = 12
+        with self.assertRaisesRegex(ValueError, "background_candidates"):
+            PNG2ANSI.validate_config(invalid)
 
 
 if __name__ == "__main__":
