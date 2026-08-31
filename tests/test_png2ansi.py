@@ -34,6 +34,15 @@ def synthetic(path: Path) -> None:
 
 
 class PNG2ANSITests(unittest.TestCase):
+    def test_shared_default_preprocessing_profile(self) -> None:
+        self.assertEqual(PNG2ANSI.DEFAULT_CONFIG["image"], {
+            "brightness": 1.0, "contrast": 0.85, "saturation": 1.8,
+            "gamma": 1.0, "sharpness": 1.2,
+        })
+        self.assertEqual(PNG2ANSI.DEFAULT_CONFIG["nl_filter"], {
+            "enabled": True, "mode": "edge-enhancement", "radius": 1.0, "alpha": 0.9,
+        })
+
     def test_default_cli_and_classic_payload(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             source = Path(directory) / "sample.png"
@@ -96,7 +105,7 @@ class PNG2ANSITests(unittest.TestCase):
             )
             self.assertEqual(result.returncode, 0, result.stderr)
             digest = hashlib.sha256(output.read_bytes()).hexdigest()
-            self.assertEqual(digest, "2e39bb11a3065268f14a99ecb44467d89be26f0660f674a7088251e4c40cb0eb")
+            self.assertEqual(digest, "9629fab8e1dcf77fd8412e57e137fcd3cc70fe17beb401293b3da366c356b78c")
 
     def test_v1_profile_migrates_and_cli_precedence_includes_new_filters(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

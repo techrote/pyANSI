@@ -55,10 +55,10 @@ DEFAULT_CONFIG: dict[str, Any] = {
     },
     "image": {
         "brightness": 1.0,
-        "contrast": 1.0,
-        "saturation": 1.0,
+        "contrast": 0.85,
+        "saturation": 1.8,
         "gamma": 1.0,
-        "sharpness": 1.18,
+        "sharpness": 1.2,
     },
     "fit": {
         "foreground_candidates": 6,
@@ -70,7 +70,7 @@ DEFAULT_CONFIG: dict[str, Any] = {
         "height": 160,
     },
     "nl_filter": {
-        "enabled": False,
+        "enabled": True,
         "mode": "edge-enhancement",
         "radius": 1.0,
         "alpha": 0.9,

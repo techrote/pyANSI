@@ -22,8 +22,8 @@ make larger, more coherent glyph clusters; higher dimensions retain small
 features. Width and height are independent, so they can also correct or create
 an aspect treatment. Derez never enlarges a smaller source.
 
-NL Filter is off by default. `edge-enhancement` with radius 1 and alpha 0.9 is
-a strong starting preset for panels, diagrams, and machinery; reduce alpha if
+NL Filter is on by default. `edge-enhancement` with radius 1 and alpha 0.9 is
+the starting preset for panels, diagrams, and machinery; reduce alpha if
 bright rims or noisy seams appear. `alpha-trimmed-mean` removes isolated specks,
 with alpha near 1 behaving like a median. `optimal-estimation` is better for
 dither or grain because it smooths quiet regions while retaining stronger

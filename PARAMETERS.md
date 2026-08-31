@@ -31,7 +31,7 @@ reduce canvas size, sampling, vocabulary, or photographic candidates.
 | `derez.enabled` | false | boolean | Enables an exact intermediate raster before other adjustments. | Useful for suppressing details too fine for ANSI. |
 | `derez.width` | 160 | 16–2048 | Intermediate pixel width. | Never exceeds source width; width×height may not exceed 4,194,304. |
 | `derez.height` | 160 | 16–2048 | Intermediate pixel height. | Independent dimensions may intentionally alter aspect ratio. |
-| `nl_filter.enabled` | false | boolean | Enables seven-sample nonlinear preprocessing. | Runs after Derez and before tonal controls. |
+| `nl_filter.enabled` | true | boolean | Enables seven-sample nonlinear preprocessing. | Runs after Derez and before tonal controls. |
 | `nl_filter.mode` | `edge-enhancement` | alpha-trimmed-mean, optimal-estimation, edge-enhancement | Despeckles, adaptively smooths, or sharpens local edges. | Alpha meaning depends on mode. |
 | `nl_filter.radius` | 1.0 | 0.33–1 | Size/mix of the seven-sample neighbourhood. | 0.33 is nearly neutral; 1 uses the complete neighbourhood. |
 | `nl_filter.alpha` | 0.9 | 0–1 | Trim amount, smoothing strength, or edge strength. | Edge 0.9 is intentionally strong; reduce it if halos dominate. |
@@ -47,10 +47,10 @@ contrast.
 | Setting | Default | Range | Visual effect | Cost and interactions |
 | --- | ---: | --- | --- | --- |
 | `image.brightness` | 1.0 | 0–4 | Scales overall light. | Raise cautiously before highlights collapse to white. |
-| `image.contrast` | 1.0 | 0–4 | Separates dark and light regions. | Often the most effective photographic control. |
-| `image.saturation` | 1.0 | 0–4 | Changes hue intensity. | Industrial accent ink depends on saturation. |
+| `image.contrast` | 0.85 | 0–4 | Separates dark and light regions. | Often the most effective photographic control. |
+| `image.saturation` | 1.8 | 0–4 | Changes hue intensity. | Industrial accent ink depends on saturation. |
 | `image.gamma` | 1.0 | 0.1–4 | Adjusts midtones; above 1 brightens them. | More selective than brightness. |
-| `image.sharpness` | 1.18 | 0–4 | Emphasizes detail before cell fitting. | Combine carefully with NL edge enhancement to avoid halos. |
+| `image.sharpness` | 1.2 | 0–4 | Emphasizes detail before cell fitting. | Combine carefully with NL edge enhancement to avoid halos. |
 
 ## Photographic fitting
 
